@@ -48,7 +48,7 @@ forktest(void)
 
   print("fork test\n");
   40:	00000517          	auipc	a0,0x0
-  44:	67850513          	addi	a0,a0,1656 # 6b8 <uptime+0xc>
+  44:	68850513          	addi	a0,a0,1672 # 6c8 <get_process+0xc>
   48:	00000097          	auipc	ra,0x0
   4c:	fb8080e7          	jalr	-72(ra) # 0 <print>
 
@@ -93,7 +93,7 @@ forktest(void)
   aa:	04f71963          	bne	a4,a5,fc <forktest+0xc4>
     print("fork claimed to work N times!\n");
   ae:	00000517          	auipc	a0,0x0
-  b2:	61a50513          	addi	a0,a0,1562 # 6c8 <uptime+0x1c>
+  b2:	62a50513          	addi	a0,a0,1578 # 6d8 <get_process+0x1c>
   b6:	00000097          	auipc	ra,0x0
   ba:	f4a080e7          	jalr	-182(ra) # 0 <print>
     exit(1);
@@ -111,7 +111,7 @@ forktest(void)
   d4:	0007df63          	bgez	a5,f2 <forktest+0xba>
       print("wait stopped early\n");
   d8:	00000517          	auipc	a0,0x0
-  dc:	61050513          	addi	a0,a0,1552 # 6e8 <uptime+0x3c>
+  dc:	62050513          	addi	a0,a0,1568 # 6f8 <get_process+0x3c>
   e0:	00000097          	auipc	ra,0x0
   e4:	f20080e7          	jalr	-224(ra) # 0 <print>
       exit(1);
@@ -138,7 +138,7 @@ forktest(void)
  116:	00f70f63          	beq	a4,a5,134 <forktest+0xfc>
     print("wait got too many\n");
  11a:	00000517          	auipc	a0,0x0
- 11e:	5e650513          	addi	a0,a0,1510 # 700 <uptime+0x54>
+ 11e:	5f650513          	addi	a0,a0,1526 # 710 <get_process+0x54>
  122:	00000097          	auipc	ra,0x0
  126:	ede080e7          	jalr	-290(ra) # 0 <print>
     exit(1);
@@ -149,7 +149,7 @@ forktest(void)
 
   print("fork test OK\n");
  134:	00000517          	auipc	a0,0x0
- 138:	5e450513          	addi	a0,a0,1508 # 718 <uptime+0x6c>
+ 138:	5f450513          	addi	a0,a0,1524 # 728 <get_process+0x6c>
  13c:	00000097          	auipc	ra,0x0
  140:	ec4080e7          	jalr	-316(ra) # 0 <print>
 }
@@ -943,3 +943,23 @@ uptime:
  6ae:	00000073          	ecall
  ret
  6b2:	8082                	ret
+
+00000000000006b4 <hello>:
+.global hello
+hello:
+ li a7, SYS_hello
+ 6b4:	48d9                	li	a7,22
+ ecall
+ 6b6:	00000073          	ecall
+ ret
+ 6ba:	8082                	ret
+
+00000000000006bc <get_process>:
+.global get_process
+get_process:
+ li a7, SYS_get_process
+ 6bc:	48dd                	li	a7,23
+ ecall
+ 6be:	00000073          	ecall
+ ret
+ 6c2:	8082                	ret

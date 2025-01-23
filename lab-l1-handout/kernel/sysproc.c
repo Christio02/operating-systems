@@ -5,7 +5,6 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
-
 uint64
 sys_exit(void)
 {
@@ -88,4 +87,17 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+uint64
+sys_hello(void) {
+  printf("Hello World");
+  return 0;
+}
+
+uint64
+sys_get_process(void) {
+  struct proc *p = myproc();
+
+  return ((uint64)p -> state << 32) | p -> pid;
+
 }
