@@ -5,7 +5,7 @@ user/_grind:     file format elf64-littleriscv
 Disassembly of section .text:
 
 0000000000000000 <do_rand>:
-#include "../kernel/riscv.h"
+#include "kernel/riscv.h"
 
 // from FreeBSD.
 int

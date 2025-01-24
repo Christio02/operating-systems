@@ -5,6 +5,11 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "process.h"
+extern struct proc proc[];
+
+
+
 uint64
 sys_exit(void)
 {
@@ -88,6 +93,7 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
 uint64
 sys_hello(void) {
   printf("Hello World");
@@ -95,9 +101,37 @@ sys_hello(void) {
 }
 
 uint64
+handle_get_process(struct process_info* info, int max_count) {
+   struct proc *p;
+   int count = 0;
+
+   for (p = proc; p < &proc[NPROC]; p++) {
+      if (p->state == UNUSED)
+         continue;
+      if (count >= max_count)
+         break;
+
+      info[count].pid = p->pid;
+      info[count].state = p->state;
+
+      strncpy(info[count].name, p->name, sizeof(info[count].name) - 1);
+
+      info[count].name[sizeof(info[count].name) - 1] = '\0';
+
+      count++;
+   }
+
+   return count;
+
+}
+
+
+uint64
 sys_get_process(void) {
-  struct proc *p = myproc();
+    uint64 info_addr;
+    int max;
+    argaddr(0, &info_addr);
+    argint(1, &max);
 
-  return ((uint64)p -> state << 32) | p -> pid;
-
+    return handle_get_process((struct process_info*)info_addr, max);
 }
