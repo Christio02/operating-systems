@@ -6,6 +6,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "process.h"
+
 extern struct proc proc[];
 
 
@@ -101,23 +102,30 @@ sys_hello(void) {
 }
 
 uint64
-handle_get_process(struct process_info* info, int max_count) {
-   struct proc *p;
-   int count = 0;
+handle_get_process(struct process_info* info, int max_count) { // process info header
+   struct proc *p; // pointer to process
+   int count = 0; // count of processes 
+   struct process_info temp; // temp process info struct before copying to user space
 
-   for (p = proc; p < &proc[NPROC]; p++) {
-      if (p->state == UNUSED)
+   for (p = proc; p < &proc[NPROC]; p++) {  // iterate through process table NPROC = max processes
+
+      if (p->state == UNUSED) // skip state unused
          continue;
-      if (count >= max_count)
+      if (count >= max_count) // finished
          break;
 
-      info[count].pid = p->pid;
-      info[count].state = p->state;
+      temp.pid = p->pid; // save pid for each process in temp process
 
-      strncpy(info[count].name, p->name, sizeof(info[count].name) - 1);
+      temp.state = p->state; // same here
 
-      info[count].name[sizeof(info[count].name) - 1] = '\0';
-
+      strncpy(temp.name, p->name, sizeof(temp.name) - 1); // safely copy name from process to temp process
+      temp.name[sizeof(temp.name) - 1] = '\0'; // add null terminator to string
+      
+      // get process pagetable, destination adddress, and origin address, size to copy over
+      if (copyout(myproc()->pagetable, (uint64)(&info[count]), (char*)&temp, sizeof(temp)) < 0) {
+        return -1; // it failed
+       
+      }
       count++;
    }
 
@@ -125,13 +133,32 @@ handle_get_process(struct process_info* info, int max_count) {
 
 }
 
-
 uint64
 sys_get_process(void) {
-    uint64 info_addr;
-    int max;
-    argaddr(0, &info_addr);
-    argint(1, &max);
+    uint64 info_addr; // user space address where array of processes are stored
+    int max; // max count of processes to get
+    argaddr(0, &info_addr); // buffer address
+    argint(1, &max); // maximum count
 
     return handle_get_process((struct process_info*)info_addr, max);
+}
+
+uint64
+sys_get_arr(void) {
+  uint64 addr;
+  int size = 5;
+
+  argaddr(0, &addr);
+
+  uint64 arr[10];
+
+  for (int i = 0; i < size; i++) {
+    arr[i] = i;
+  }
+
+  if (copyout(myproc()-> pagetable, addr, (char*)arr, size * sizeof(uint64)) < 0) {
+    return -1;
+  }
+  return size;
+
 }

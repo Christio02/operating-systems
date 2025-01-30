@@ -48,7 +48,7 @@ forktest(void)
 
   print("fork test\n");
   40:	00000517          	auipc	a0,0x0
-  44:	68850513          	addi	a0,a0,1672 # 6c8 <get_process+0xc>
+  44:	69050513          	addi	a0,a0,1680 # 6d0 <get_arr+0xc>
   48:	00000097          	auipc	ra,0x0
   4c:	fb8080e7          	jalr	-72(ra) # 0 <print>
 
@@ -93,7 +93,7 @@ forktest(void)
   aa:	04f71963          	bne	a4,a5,fc <forktest+0xc4>
     print("fork claimed to work N times!\n");
   ae:	00000517          	auipc	a0,0x0
-  b2:	62a50513          	addi	a0,a0,1578 # 6d8 <get_process+0x1c>
+  b2:	63250513          	addi	a0,a0,1586 # 6e0 <get_arr+0x1c>
   b6:	00000097          	auipc	ra,0x0
   ba:	f4a080e7          	jalr	-182(ra) # 0 <print>
     exit(1);
@@ -111,7 +111,7 @@ forktest(void)
   d4:	0007df63          	bgez	a5,f2 <forktest+0xba>
       print("wait stopped early\n");
   d8:	00000517          	auipc	a0,0x0
-  dc:	62050513          	addi	a0,a0,1568 # 6f8 <get_process+0x3c>
+  dc:	62850513          	addi	a0,a0,1576 # 700 <get_arr+0x3c>
   e0:	00000097          	auipc	ra,0x0
   e4:	f20080e7          	jalr	-224(ra) # 0 <print>
       exit(1);
@@ -138,7 +138,7 @@ forktest(void)
  116:	00f70f63          	beq	a4,a5,134 <forktest+0xfc>
     print("wait got too many\n");
  11a:	00000517          	auipc	a0,0x0
- 11e:	5f650513          	addi	a0,a0,1526 # 710 <get_process+0x54>
+ 11e:	5fe50513          	addi	a0,a0,1534 # 718 <get_arr+0x54>
  122:	00000097          	auipc	ra,0x0
  126:	ede080e7          	jalr	-290(ra) # 0 <print>
     exit(1);
@@ -149,7 +149,7 @@ forktest(void)
 
   print("fork test OK\n");
  134:	00000517          	auipc	a0,0x0
- 138:	5f450513          	addi	a0,a0,1524 # 728 <get_process+0x6c>
+ 138:	5fc50513          	addi	a0,a0,1532 # 730 <get_arr+0x6c>
  13c:	00000097          	auipc	ra,0x0
  140:	ec4080e7          	jalr	-316(ra) # 0 <print>
 }
@@ -963,3 +963,13 @@ get_process:
  6be:	00000073          	ecall
  ret
  6c2:	8082                	ret
+
+00000000000006c4 <get_arr>:
+.global get_arr
+get_arr:
+ li a7, SYS_get_arr
+ 6c4:	48e1                	li	a7,24
+ ecall
+ 6c6:	00000073          	ecall
+ ret
+ 6ca:	8082                	ret

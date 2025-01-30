@@ -115,3 +115,8 @@ get_process:
  li a7, SYS_get_process
  ecall
  ret
+.global get_arr
+get_arr:
+ li a7, SYS_get_arr
+ ecall
+ ret

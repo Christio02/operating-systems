@@ -28,6 +28,7 @@ int sleep(int);
 int uptime(void);
 int hello(void);
 int get_process(struct process_info*, int);
+int get_arr(uint64 *buff);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

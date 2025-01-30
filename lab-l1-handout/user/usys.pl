@@ -37,4 +37,5 @@ entry("sbrk");
 entry("sleep");
 entry("uptime");
 entry("hello");
-entry("get_process")
+entry("get_process");
+entry("get_arr");
