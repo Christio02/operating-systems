@@ -68,55 +68,53 @@ riscv64-linux-gnu-ld: warning: kernel/kernel has a LOAD segment with RWX permiss
 riscv64-linux-gnu-objdump -S kernel/kernel > kernel/kernel.asm
 riscv64-linux-gnu-objdump -t kernel/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > kernel/kernel.sym
 make[1]: Leaving directory '/mnt/c/Users/chris/Documents/coding-ntnu/3-aret/vaar/operativsystemer/labs/lab-l1-handout'
-== Test [MANDATORY] hello, no args == make[1]: Warning: File 'user/initcode.d' has modification time 0.12 s in the future
-make[1]: warning:  Clock skew detected.  Your build may be incomplete.
-
+== Test [MANDATORY] hello, no args == 
 $ make qemu-gdb
-[MANDATORY] hello, no args: [32mOK[0m (8.3s) 
+[MANDATORY] hello, no args: [32mOK[0m (6.7s) 
 == Test [MANDATORY] hello John == 
 $ make qemu-gdb
-[MANDATORY] hello John: [32mOK[0m (2.0s) 
+[MANDATORY] hello John: [32mOK[0m (1.5s) 
 == Test [MANDATORY] hello John Doe == 
 $ make qemu-gdb
-[MANDATORY] hello John Doe: [32mOK[0m (2.0s) 
+[MANDATORY] hello John Doe: [32mOK[0m (1.5s) 
 == Test [MANDATORY] empty ps == 
 $ make qemu-gdb
-[MANDATORY] empty ps: [32mOK[0m (2.0s) 
+[MANDATORY] empty ps: [32mOK[0m (1.5s) 
 == Test [MANDATORY] shell shell ps == 
 $ make qemu-gdb
-[MANDATORY] shell shell ps: [32mOK[0m (1.3s) 
+[MANDATORY] shell shell ps: [32mOK[0m (1.5s) 
 == Test [OPTIONAL] proctree exists == 
 $ make qemu-gdb
-(1.8s) 
+(1.4s) 
     ...
          init: starting sh
          $ proctree
     [31mBAD [0m exec proctree failed
-         $ qemu-system-riscv64: terminating on signal 15 from pid 1116 (make)
+         $ qemu-system-riscv64: terminating on signal 15 from pid 38703 (make)
     unexpected lines in output
     QEMU output saved to xv6.out.proctree_exists
 == Test [OPTIONAL] empty proctree == 
 $ make qemu-gdb
-(1.9s) 
+(1.4s) 
     ...
          $ proctree
          exec proctree failed
          $ echo OK
     [32mGOOD[0m OK
-         $ qemu-system-riscv64: terminating on signal 15 from pid 1145 (make)
+         $ qemu-system-riscv64: terminating on signal 15 from pid 38747 (make)
     [31mMISSING[0m '^init \(1\)\: 2$'
     [31mMISSING[0m '^\|\-sh \(2\)\: 2$'
     [31mMISSING[0m '^  \|\-proctree \(3\)\: 4$'
     QEMU output saved to xv6.out.pproctree
 == Test [OPTIONAL] shell shell proctree == 
 $ make qemu-gdb
-(1.9s) 
+(1.6s) 
     ...
          $ proctree
          exec proctree failed
          $ echo OK
     [32mGOOD[0m OK
-         $ qemu-system-riscv64: terminating on signal 15 from pid 1174 (make)
+         $ qemu-system-riscv64: terminating on signal 15 from pid 38795 (make)
     [31mMISSING[0m '^init \(1\)\: 2$'
     [31mMISSING[0m '^\|\-sh \(2\)\: 2$'
     [31mMISSING[0m '^  \|\-sh \(3\)\: 2$'

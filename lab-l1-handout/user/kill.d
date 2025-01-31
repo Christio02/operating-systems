@@ -1,2 +1,2 @@
 user/kill.o: user/kill.c kernel/types.h kernel/stat.h user/user.h \
- user/../kernel/types.h user/../kernel/process.h
+ user/../kernel/types.h

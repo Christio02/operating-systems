@@ -6,7 +6,6 @@
 #include "proc.h"
 #include "syscall.h"
 #include "defs.h"
-#include "process.h"
 
 
 // Fetch the uint64 at addr from the current process.
@@ -104,7 +103,7 @@ extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
 extern uint64 sys_hello(void);
-extern uint64 sys_get_process();
+extern uint64 sys_get_process(void);
 extern uint64 sys_get_arr();
 
 // An array mapping syscall numbers from syscall.h

@@ -1,6 +1,5 @@
 #pragma once
 #include "../kernel/types.h"
-#include "../kernel/process.h"
 
 struct stat;
 
@@ -27,7 +26,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int hello(void);
-int get_process(struct process_info*, int);
+int get_process(uint64 addr);
 int get_arr(uint64 *buff);
 // ulib.c
 int stat(const char*, struct stat*);

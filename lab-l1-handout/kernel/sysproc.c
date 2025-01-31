@@ -5,7 +5,6 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
-#include "process.h"
 
 extern struct proc proc[];
 
@@ -101,46 +100,43 @@ sys_hello(void) {
   return 0;
 }
 
-uint64
-handle_get_process(struct process_info* info, int max_count) { // process info header
-   struct proc *p; // pointer to process
-   int count = 0; // count of processes 
-   struct process_info temp; // temp process info struct before copying to user space
 
-   for (p = proc; p < &proc[NPROC]; p++) {  // iterate through process table NPROC = max processes
 
-      if (p->state == UNUSED) // skip state unused
-         continue;
-      if (count >= max_count) // finished
-         break;
-
-      temp.pid = p->pid; // save pid for each process in temp process
-
-      temp.state = p->state; // same here
-
-      strncpy(temp.name, p->name, sizeof(temp.name) - 1); // safely copy name from process to temp process
-      temp.name[sizeof(temp.name) - 1] = '\0'; // add null terminator to string
-      
-      // get process pagetable, destination adddress, and origin address, size to copy over
-      if (copyout(myproc()->pagetable, (uint64)(&info[count]), (char*)&temp, sizeof(temp)) < 0) {
-        return -1; // it failed
-       
-      }
-      count++;
-   }
-
-   return count;
-
-}
-
+// first it worked with just printing in the loop here, but I thought that sounded unsafe, so I copied the process
+// info safely to user space instead
 uint64
 sys_get_process(void) {
-    uint64 info_addr; // user space address where array of processes are stored
-    int max; // max count of processes to get
-    argaddr(0, &info_addr); // buffer address
-    argint(1, &max); // maximum count
+  struct proc *p; // pointer to process structure
 
-    return handle_get_process((struct process_info*)info_addr, max);
+  struct process_info {
+    char name[16];
+    int pid;
+    int state;
+  } processes[NPROC]; // create array where each element is process_info
+
+  int count = 0; // track number of processes found
+  uint64 user_addr; // user space address where this info should be copied to
+
+  argaddr(0, &user_addr); // get user space buffer address from user space, when this sys call is called
+
+
+
+  for (p = proc; p < &proc[NPROC]; p++) { // iterate over process table
+    acquire(&p->lock); // acquire lock  -> because of safely access state
+    if (p->state != UNUSED) {
+      safestrcpy(processes[count].name, p->name, sizeof(processes[count].name)); // copy the name, needs to be safely copied to array
+
+      processes[count].pid = p->pid; // add pid to process_info in  array
+
+      processes[count].state = p->state; 
+
+      count++;
+    }
+    release(&p->lock); // unlock process 
+  }
+  // need to use copyout, not print directly in kernel, if 0 it worked then we return number of processes, if not return -1
+  return copyout(myproc()->pagetable, user_addr, (char*)processes, count * sizeof(struct process_info)) == 0 ? count : -1; 
+
 }
 
 uint64
