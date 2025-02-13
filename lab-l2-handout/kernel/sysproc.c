@@ -120,3 +120,8 @@ uint64 sys_yield(void)
     yield(YIELD_OTHER);
     return 0;
 }
+
+uint64 sys_getprio(void) {
+    struct proc *p = myproc();
+    return p->priority;
+}

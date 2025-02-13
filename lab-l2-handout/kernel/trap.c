@@ -79,8 +79,11 @@ void usertrap(void)
         exit(-1);
 
     // give up the CPU if this is a timer interrupt. Interrupted user space program
-    if (which_dev == 2)
-        yield(YIELD_TIMER);
+    if (which_dev == 2) {
+       p->priority = 1;
+       yield(YIELD_TIMER); // yield
+
+    }
 
     usertrapret();
 }

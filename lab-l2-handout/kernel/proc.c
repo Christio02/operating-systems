@@ -29,9 +29,12 @@ typedef struct scheduler_impl
 
 // Register all available schedulers here
 // also update schedc, this indicates how long the SchedImpl array is
-#define SCHEDC 1
+#define SCHEDC 2
 static SchedImpl available_schedulers[SCHEDC] = {
-    {"Round Robin", &rr_scheduler, 1}};
+    {"Round Robin", &rr_scheduler, 1},
+    {"MLFQ scheduler", &mlfq_scheduler, 2}
+
+};
 
 void (*sched_pointer)(void) = &rr_scheduler;
 
@@ -217,6 +220,8 @@ allocproc(void)
 found:
     p->pid = allocpid();
     p->state = USED;
+    p->priority = 0;
+    p->time_ticks = 0;
 
     // Allocate a trapframe page.
     if ((p->trapframe = (struct trapframe *)kalloc()) == 0)
@@ -593,6 +598,96 @@ void rr_scheduler(void)
     // Round Robin round has completed.
 }
 
+
+void mlfq_scheduler(void) {
+    
+    int highTimeSlice = 5;
+    int medTimeSlice = 10;
+ 
+
+
+    struct proc *highPriority[NPROC]; // highest priority queue (process are added here in start)
+    struct proc *mediumPriority[NPROC]; // lower priority queue
+
+    int indexHigh = 0;
+    int indexMed = 0;
+
+    struct proc *p; // get process struct
+    struct cpu *c = mycpu(); // get cpu
+
+    c->proc = 0; // set cpu process to none
+
+    intr_on(); // enable time slicing
+
+
+    // add processes to correct queue
+    for (p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        if (p->state == RUNNABLE) {
+            
+            if (p->priority == 0) {
+                highPriority[indexHigh] = p;
+                indexHigh++;
+            } else if (p->priority == 1) {
+                mediumPriority[indexMed] = p;
+                indexMed++;
+            }
+        }
+        release(&p->lock);
+
+    }
+    // run the high priority queue and demote to medium
+
+    for (int i = 0; i < indexHigh; i++) {
+        p = highPriority[i];
+        acquire(&p->lock);
+        if (p->state == RUNNABLE) {
+            p->state = RUNNING;
+            c->proc = p;
+            swtch(&c->context, &p->context);
+            p->time_ticks++;
+            int treshold = highTimeSlice;
+            if (p->time_ticks >= treshold) {
+                p->priority = 1;
+            }
+            p->time_ticks = 0;
+            c->proc = 0;
+            // update p->priority based on used time slice
+           
+        }
+
+        release(&p->lock);
+
+    }
+    // if no process in high priority queue, then go through medium queue
+    if (indexHigh == 0) {
+        for (int i = 0; i < indexMed; i++) {
+            p = mediumPriority[i];
+            acquire(&p->lock);
+            if (p->state == RUNNABLE) {
+                p->state = RUNNING;
+                c->proc = p;
+                swtch(&c->context, &p->context);
+                p->time_ticks++;
+                int treshold = medTimeSlice;
+                if (p->time_ticks >= treshold) {
+                p->priority = 1;
+            }
+                p->time_ticks = 0;
+
+                c->proc = 0;
+                // update priority based on time slice
+
+            }
+
+            release(&p->lock);
+
+        }
+
+    }
+
+}
+
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
@@ -625,6 +720,7 @@ void yield(uint64 reason)
     struct proc *p = myproc();
     acquire(&p->lock);
     p->state = RUNNABLE;
+    p->time_ticks = 0;
     sched();
     release(&p->lock);
 }
