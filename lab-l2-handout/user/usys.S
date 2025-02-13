@@ -125,3 +125,8 @@ yield:
  li a7, SYS_yield
  ecall
  ret
+.global getprio
+getprio:
+ li a7, SYS_getprio
+ ecall
+ ret

@@ -1,3 +1,6 @@
+
+#include "kernel/types.h"
+
 struct stat;
 enum procstate
 {
@@ -45,6 +48,7 @@ struct user_proc *ps(uint8 start, uint8 count);
 uint64 schedls(void);
 int schedset(int);
 void yield(void);
+int getprio(void);
 
 // ulib.c
 int stat(const char *, struct stat *);

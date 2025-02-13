@@ -24,3 +24,4 @@
 #define SYS_schedls 23
 #define SYS_schedset 24
 #define SYS_yield 25
+#define SYS_getprio 26

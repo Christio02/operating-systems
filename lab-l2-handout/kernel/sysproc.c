@@ -122,6 +122,6 @@ uint64 sys_yield(void)
 }
 
 uint64 sys_getprio(void) {
-    struct proc *p = myproc();
-    return p->priority;
+    
+    return myproc()->priority;
 }

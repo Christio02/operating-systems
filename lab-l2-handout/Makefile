@@ -139,6 +139,7 @@ UPROGS=\
 	$U/_congen\
 	$U/_schedls\
 	$U/_schedset\
+	$U/_getpri\
 	
 
 fs.img: mkfs/mkfs README $(UPROGS) $U/load.sh

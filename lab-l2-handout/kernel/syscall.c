@@ -101,6 +101,7 @@ extern uint64 sys_ps(void);
 extern uint64 sys_schedls(void);
 extern uint64 sys_schedset(void);
 extern uint64 sys_yield(void);
+extern uint64 sys_getprio(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -130,6 +131,7 @@ static uint64 (*syscalls[])(void) = {
     [SYS_schedls] sys_schedls,
     [SYS_schedset] sys_schedset,
     [SYS_yield] sys_yield,
+    [SYS_getprio] sys_getprio,
 };
 
 void syscall(void)

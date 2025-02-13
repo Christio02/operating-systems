@@ -598,94 +598,86 @@ void rr_scheduler(void)
     // Round Robin round has completed.
 }
 
+void mlfq_scheduler(void)
+{
 
-void mlfq_scheduler(void) {
-    
-    int highTimeSlice = 5;
-    int medTimeSlice = 10;
- 
+    // int highTimeSlice = 5;
+    // int medTimeSlice = 10;
 
-
-    struct proc *highPriority[NPROC]; // highest priority queue (process are added here in start)
+    struct proc *highPriority[NPROC];   // highest priority queue (process are added here in start)
     struct proc *mediumPriority[NPROC]; // lower priority queue
 
     int indexHigh = 0;
     int indexMed = 0;
 
-    struct proc *p; // get process struct
+    struct proc *p;          // get process struct
     struct cpu *c = mycpu(); // get cpu
 
     c->proc = 0; // set cpu process to none
 
-    intr_on(); // enable time slicing
-
+    intr_on(); // enable interrupts
 
     // add processes to correct queue
-    for (p = proc; p < &proc[NPROC]; p++) {
+    for (p = proc; p < &proc[NPROC]; p++)
+    {
         acquire(&p->lock);
-        if (p->state == RUNNABLE) {
-            
-            if (p->priority == 0) {
+        if (p->state == RUNNABLE)
+        {
+
+            if (p->priority == 0)
+            {
                 highPriority[indexHigh] = p;
                 indexHigh++;
-            } else if (p->priority == 1) {
+            }
+            else if (p->priority == 1)
+            {
                 mediumPriority[indexMed] = p;
                 indexMed++;
             }
         }
         release(&p->lock);
-
     }
     // run the high priority queue and demote to medium
 
-    for (int i = 0; i < indexHigh; i++) {
+    for (int i = 0; i < indexHigh; i++)
+    {
         p = highPriority[i];
         acquire(&p->lock);
-        if (p->state == RUNNABLE) {
+        if (p->state == RUNNABLE)
+        {
             p->state = RUNNING;
             c->proc = p;
             swtch(&c->context, &p->context);
-            p->time_ticks++;
-            int treshold = highTimeSlice;
-            if (p->time_ticks >= treshold) {
-                p->priority = 1;
-            }
-            p->time_ticks = 0;
+            // p->time_ticks++;
+
+            p->time_ticks = 0; // reset time ticks
             c->proc = 0;
-            // update p->priority based on used time slice
-           
         }
 
         release(&p->lock);
-
     }
     // if no process in high priority queue, then go through medium queue
-    if (indexHigh == 0) {
-        for (int i = 0; i < indexMed; i++) {
+    if (indexHigh == 0)
+    {
+        for (int i = 0; i < indexMed; i++)
+        {
             p = mediumPriority[i];
             acquire(&p->lock);
-            if (p->state == RUNNABLE) {
+            if (p->state == RUNNABLE)
+            {
                 p->state = RUNNING;
                 c->proc = p;
                 swtch(&c->context, &p->context);
-                p->time_ticks++;
-                int treshold = medTimeSlice;
-                if (p->time_ticks >= treshold) {
-                p->priority = 1;
-            }
+
                 p->time_ticks = 0;
 
                 c->proc = 0;
                 // update priority based on time slice
-
             }
 
             release(&p->lock);
-
         }
-
     }
-
 }
 
 // Switch to scheduler.  Must hold only p->lock

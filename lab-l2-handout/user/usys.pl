@@ -40,3 +40,4 @@ entry("ps");
 entry("schedls");
 entry("schedset");
 entry("yield");
+entry("getprio");
