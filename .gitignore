@@ -1,0 +1,58 @@
+# Ignore everything by default
+*
+
+# But track .gitignore itself
+!.gitignore
+
+# Allow tracking of essential files
+!Makefile
+!LICENSE
+!README*
+!gradelib.py
+
+# Allow tracking kernel and user source files
+!kernel/
+!kernel/*.c
+!kernel/*.h
+!kernel/*.S
+!kernel/Makefile
+
+!user/
+!user/*.c
+!user/*.h
+!user/*.S
+!user/usys.pl
+
+# Keep track of essential build scripts
+!mkfs.c
+!mkfs
+
+# Ignore build artifacts and binaries
+*.o
+*.d
+*.out
+*.bin
+*.asm
+*.sym
+*.img
+*.elf
+*.swp
+*.swo
+*.tmp
+*.bak
+*.log
+
+# Ignore compiled user programs
+user/_*
+user/*.asm
+user/*.sym
+user/usys.o
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore development environment settings
+.vscode/
+.gdbinit

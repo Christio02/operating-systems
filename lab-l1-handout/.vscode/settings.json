@@ -1,7 +1,0 @@
-{
-  "files.associations": {
-    "user.h": "c",
-    "process.h": "c",
-    "types.h": "c"
-  }
-}
