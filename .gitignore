@@ -1,0 +1,54 @@
+# Ignore everything by default
+*
+
+# But track .gitignore itself
+!.gitignore
+
+# Allow tracking of essential files
+!Makefile
+!LICENSE
+!README*
+!gradelib.py
+
+# Allow tracking lab handout folders
+!lab-l2-handout/
+!lab-l1-handout/
+
+# Allow tracking files inside lab handout folders
+!lab-l2-handout/**
+!lab-l1-handout/**
+
+# Ignore build artifacts and binaries
+*.o
+*.d
+*.out
+*.bin
+*.asm
+*.sym
+*.img
+*.elf
+*.swp
+*.swo
+*.tmp
+*.bak
+*.log
+
+# Ignore compiled user programs
+lab-l2-handout/user/_*
+lab-l2-handout/user/*.asm
+lab-l2-handout/user/*.sym
+lab-l2-handout/user/usys.o
+
+lab-l1-handout/user/_*
+lab-l1-handout/user/*.asm
+lab-l1-handout/user/*.sym
+lab-l1-handout/user/usys.o
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore development environment settings
+.vscode/
+.gdbinit
