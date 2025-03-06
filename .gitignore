@@ -13,10 +13,14 @@
 # Allow tracking lab handout folders
 !lab-l2-handout/
 !lab-l1-handout/
+!lab-l3-handout/
+!lab-l4-handout/
 
 # Allow tracking files inside lab handout folders
 !lab-l2-handout/**
 !lab-l1-handout/**
+!lab-l3-handout/**
+!lab-l4-handout/**
 
 # Ignore build artifacts and binaries
 *.o
@@ -43,6 +47,16 @@ lab-l1-handout/user/_*
 lab-l1-handout/user/*.asm
 lab-l1-handout/user/*.sym
 lab-l1-handout/user/usys.o
+
+lab-l3-handout/user/_*
+lab-l3-handout/user/*.asm
+lab-l3-handout/user/*.sym
+lab-l3-handout/user/usys.o
+
+lab-l4-handout/user/_*
+lab-l4-handout/user/*.asm
+lab-l4-handout/user/*.sym
+lab-l4-handout/user/usys.o
 
 # Ignore Python cache files
 __pycache__/
