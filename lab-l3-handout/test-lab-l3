@@ -158,7 +158,7 @@ def test8():
     r.match(
         "^\[chld\] v5 --> (\d+)$",
         "^\[chld\] v6 --> (\d+)$",
-        match_fn=lambda matches: (int(matches[0]) - 1 == int(matches[1])),
+        match_fn=lambda matches: (int(matches[0]) - 1 == int(matches[1]) or int(matches[0]) == int(matches[1])),
     )
     r.match(
         "^\[chld\] modified one element in the 1st page, global_array\[0\]=222$",

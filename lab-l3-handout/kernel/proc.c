@@ -836,3 +836,20 @@ void schedset(int id)
     sched_pointer = available_schedulers[id].impl;
     printf("Scheduler successfully changed to %s\n", available_schedulers[id].name);
 }
+
+struct proc *get_proc(int pid)
+{
+    struct proc *p;
+
+    for (p = proc; p < &p[NPROC]; p++)
+    {
+        acquire(&p->lock);
+        if (p->pid == pid)
+        {
+            release(&p->lock);
+            return p;
+        }
+        release(&p->lock);
+    }
+    return 0;
+}

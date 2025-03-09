@@ -119,9 +119,36 @@ uint64 sys_schedset(void)
 
 uint64 sys_va2pa(void)
 {
+    // get arguments from user space
+    uint64 addr;
+    int pid;
 
-    printf("TODO: IMPLEMENT ME [%s@%s (line %d)]", __func__, __FILE__, __LINE__);
-    return 0;
+    argaddr(0, &addr);
+    argint(1, &pid);
+
+    // declare physical address
+    uint64 phyAddr;
+    // declare process struct
+    struct proc *p;
+
+    if (pid == 0)
+    {
+        // get current process
+        p = myproc();
+    }
+    else
+    {
+        p = get_proc(pid);
+        // process not found
+        if (p == 0)
+        {
+            return 0;
+        }
+    }
+    // returns correct mapping, 0 if no mapping
+    phyAddr = walkaddr(p->pagetable, addr);
+
+    return phyAddr;
 }
 
 uint64 sys_pfreepages(void)
