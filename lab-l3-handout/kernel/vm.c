@@ -340,6 +340,42 @@ err:
   return -1;
 }
 
+int uvmshare(pagetable_t parent, pagetable_t child, uint64 size)
+{
+  pte_t *pte; // pointer to pte structure
+  uint64 pa, flags, i;
+
+  for (i = 0; i < size; i += PGSIZE)
+  {
+    if ((pte = walk(parent, i, 0)) == 0)
+    {
+      panic("uvmshare: pte should exist");
+    }
+    if ((*pte & PTE_V) == 0)
+    {
+      panic("uvmshare: page not present");
+    }
+
+    // get physical address and flags
+    pa = PTE2PA(*pte);
+    flags = PTE_FLAGS(*pte);
+
+    // clear write flag, make read-only
+    flags &= ~PTE_W;
+
+    // map pages to child
+    if (mappages(child, i, PGSIZE, pa, flags) != 0)
+    {
+      panic("uvmshare: mappages failed!");
+    }
+
+    // increase reference count for pages
+    // TODO: Implement in kalloc.c and decref
+    // incref((void *)pa);
+  }
+  return 0;
+}
+
 // mark a PTE invalid for user access.
 // used by exec for the user stack guard page.
 void uvmclear(pagetable_t pagetable, uint64 va)
