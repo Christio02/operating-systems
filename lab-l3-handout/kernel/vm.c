@@ -117,13 +117,18 @@ walkaddr(pagetable_t pagetable, uint64 va)
     return 0;
 
   pte = walk(pagetable, va, 0);
+
   if (pte == 0)
     return 0;
+
   if ((*pte & PTE_V) == 0)
     return 0;
+
   if ((*pte & PTE_U) == 0)
     return 0;
+
   pa = PTE2PA(*pte);
+
   return pa;
 }
 
@@ -320,13 +325,18 @@ int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
   {
     if ((pte = walk(old, i, 0)) == 0)
       panic("uvmcopy: pte should exist");
+
     if ((*pte & PTE_V) == 0)
       panic("uvmcopy: page not present");
     pa = PTE2PA(*pte);
+
     flags = PTE_FLAGS(*pte);
+
     if ((mem = kalloc()) == 0)
       goto err;
+
     memmove(mem, (char *)pa, PGSIZE);
+
     if (mappages(new, i, PGSIZE, (uint64)mem, flags) != 0)
     {
       kfree(mem);

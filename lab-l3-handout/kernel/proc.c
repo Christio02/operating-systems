@@ -849,7 +849,7 @@ struct proc *get_proc(int pid)
 {
     struct proc *p;
 
-    for (p = proc; p < &p[NPROC]; p++)
+    for (p = proc; p < &proc[NPROC]; p++)
     {
         acquire(&p->lock);
         if (p->pid == pid)

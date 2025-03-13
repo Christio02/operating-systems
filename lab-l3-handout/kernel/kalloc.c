@@ -14,11 +14,10 @@ uint64 FREE_PAGES = 0;
 
 void freerange(void *pa_start, void *pa_end);
 
-extern char end[]; // first address after kernel.
-                   // defined by kernel.ld.
+extern char end[]; // first address after kernel. // defined by kernel.ld.
 
-// reference counter for page
-int ref_count[PHYSTOP / PGSIZE];
+struct ref_spinlock ref_st;
+
 struct run
 {
     struct run *next;
@@ -34,12 +33,8 @@ struct
 void kinit()
 {
     initlock(&kmem.lock, "kmem");
+    initlock(&ref_st.lock, "ref_st");
 
-    // initialize ref count for each page
-    for (int i = 0; i < PHYSTOP / PGSIZE; i++)
-    {
-        ref_count[i] = 0;
-    }
     freerange(end, (void *)PHYSTOP);
     MAX_PAGES = FREE_PAGES;
 }
@@ -50,12 +45,12 @@ void incref(void *pa)
     {
         panic("incref: Pa is 0!");
     }
-    acquire(&kmem.lock);
+    acquire(&ref_st.lock);
     // get index
-    int index = (uint64)pa / PGSIZE;
-    ref_count[index]++;
+    int index = ((uint64)pa) / PGSIZE;
+    ref_st.ref_count[index]++;
 
-    release(&kmem.lock);
+    release(&ref_st.lock);
 }
 
 void freerange(void *pa_start, void *pa_end)
@@ -64,6 +59,10 @@ void freerange(void *pa_start, void *pa_end)
     p = (char *)PGROUNDUP((uint64)pa_start);
     for (; p + PGSIZE <= (char *)pa_end; p += PGSIZE)
     {
+        acquire(&ref_st.lock);
+        uint64 index = (uint64)p / PGSIZE;
+        ref_st.ref_count[index] = 1;
+        release(&ref_st.lock);
         kfree(p);
     }
 }
@@ -76,28 +75,27 @@ void kfree(void *pa)
 {
     if (MAX_PAGES != 0)
         assert(FREE_PAGES < MAX_PAGES);
-    struct run *r;
 
     if (((uint64)pa % PGSIZE) != 0 || (char *)pa < end || (uint64)pa >= PHYSTOP)
         panic("kfree");
 
+    int index = ((uint64)pa) / PGSIZE;
+
     // r = (struct run *)pa;
 
-    acquire(&kmem.lock);
-    int index = (uint64)pa / PGSIZE;
-    if (ref_count[index] < 0)
-    {
-        panic("refcount: refcount is less than 0!");
-    }
+    acquire(&ref_st.lock);
 
-    ref_count[index]--;
+    ref_st.ref_count[index]--;
+    release(&ref_st.lock);
 
     // decrease ref count
     // r->next = kmem.freelist;
     // kmem.freelist = r;
     // FREE_PAGES++;
-    if (ref_count[index] == 0)
+    if (ref_st.ref_count[index] == 0)
     {
+        struct run *r;
+        acquire(&kmem.lock);
         // Fill with junk to catch dangling refs.
 
         memset(pa, 1, PGSIZE);
@@ -106,9 +104,9 @@ void kfree(void *pa)
         r = (struct run *)pa;
         r->next = kmem.freelist;
         kmem.freelist = r;
-        FREE_PAGES++;
+        // FREE_PAGES++;
+        release(&kmem.lock);
     }
-    release(&kmem.lock);
 }
 
 // Allocate one 4096-byte page of physical memory.
@@ -125,14 +123,23 @@ kalloc(void)
     if (r)
     {
         kmem.freelist = r->next;
-        int index = (uint64)r / PGSIZE;
-        ref_count[index] = 1;
+        FREE_PAGES--;
     }
 
     release(&kmem.lock);
 
     if (r)
+    {
         memset((char *)r, 5, PGSIZE); // fill with junk
-    FREE_PAGES--;
+
+        acquire(&ref_st.lock);
+
+        int index = ((uint64)r / PGSIZE);
+
+        ref_st.ref_count[index] = 1;
+
+        release(&ref_st.lock);
+    }
+
     return (void *)r;
 }

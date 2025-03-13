@@ -63,6 +63,66 @@ void usertrap(void)
     intr_on();
 
     syscall();
+
+    // implement usertrap for cow
+  }
+
+  // cow fault
+  else if (r_scause() == 15)
+  {
+
+    // get va that caused fault
+    uint64 va = r_stval();
+    uint64 flags;
+    uint64 pa0;
+    pte_t *pte;
+    char *new_pa;
+
+    // ensure va is in correct range
+    if (va >= MAXVA)
+      exit(-1);
+
+    // go through page table and get pte of fault va
+    if ((pte = walk(p->pagetable, va, 0)) == 0)
+      exit(-1);
+
+    // chekc if page is present and valid
+    if ((*pte & PTE_V) == 0)
+      exit(-1);
+
+    // check if page is user accessible
+    if ((*pte & PTE_U) == 0)
+      exit(-1);
+
+    if ((*pte & PTE_S) == 0)
+      exit(-1);
+
+    // Ensure the page is NOT writable (otherwise it's not a COW fault)
+    if ((*pte & PTE_W) != 0)
+      exit(-1);
+
+    // get physical address of faulting page
+    pa0 = PTE2PA(*pte);
+
+    // allocate new physical page for copy
+    if ((new_pa = kalloc()) == 0)
+      exit(-1);
+
+    // move old page contents to new page
+    memmove(new_pa, (char *)pa0, PGSIZE);
+
+    // same flags
+    flags = PTE_FLAGS(*pte);
+    // update pointer to new page
+    *pte = PA2PTE((uint64)new_pa);
+    *pte |= flags;
+    // ensure is writable
+    *pte |= PTE_W;
+    // no longer sharable
+    // *pte &= ~PTE_S;
+
+    // call kfree that either decrements ref count or frees page
+    kfree((void *)pa0);
   }
   else if ((which_dev = devintr()) != 0)
   {
