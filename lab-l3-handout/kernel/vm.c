@@ -366,22 +366,14 @@ int uvmshare(pagetable_t parent, pagetable_t child, uint64 size)
     // map pages to child
     if (mappages(child, i, PGSIZE, pa, flags) != 0)
     {
-      panic("uvmshare: mappages failed!");
+      goto err;
     }
     // make parent pte read-only
     *pte &= ~PTE_W;
 
     // increase reference count for pages
     // TODO: Implement in kalloc.c and decref
-    // incref((void *)pa);
-
-    /*
-     acquire(&ref_c.lock);
-    - increase reference_count by 1
-    ref_c.reference_count[pa/PGSIZE]++;
-    release(&ref_c.lock);
-
-    */
+    incref((void *)pa);
   }
   return 0;
 

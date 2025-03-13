@@ -17,7 +17,6 @@ void freerange(void *pa_start, void *pa_end);
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
-
 // reference counter for page
 int ref_count[PHYSTOP / PGSIZE];
 struct run
@@ -32,15 +31,32 @@ struct
 
 } kmem;
 
-
 void kinit()
 {
     initlock(&kmem.lock, "kmem");
+
+    // initialize ref count for each page
+    for (int i = 0; i < PHYSTOP / PGSIZE; i++)
+    {
+        ref_count[i] = 0;
+    }
     freerange(end, (void *)PHYSTOP);
     MAX_PAGES = FREE_PAGES;
 }
 
+void incref(void *pa)
+{
+    if (pa == 0)
+    {
+        panic("incref: Pa is 0!");
+    }
+    acquire(&kmem.lock);
+    // get index
+    int index = (uint64)pa / PGSIZE;
+    ref_count[index]++;
 
+    release(&kmem.lock);
+}
 
 void freerange(void *pa_start, void *pa_end)
 {
@@ -65,15 +81,33 @@ void kfree(void *pa)
     if (((uint64)pa % PGSIZE) != 0 || (char *)pa < end || (uint64)pa >= PHYSTOP)
         panic("kfree");
 
-    // Fill with junk to catch dangling refs.
-    memset(pa, 1, PGSIZE);
-
-    r = (struct run *)pa;
+    // r = (struct run *)pa;
 
     acquire(&kmem.lock);
-    r->next = kmem.freelist;
-    kmem.freelist = r;
-    FREE_PAGES++;
+    int index = (uint64)pa / PGSIZE;
+    if (ref_count[index] < 0)
+    {
+        panic("refcount: refcount is less than 0!");
+    }
+
+    ref_count[index]--;
+
+    // decrease ref count
+    // r->next = kmem.freelist;
+    // kmem.freelist = r;
+    // FREE_PAGES++;
+    if (ref_count[index] == 0)
+    {
+        // Fill with junk to catch dangling refs.
+
+        memset(pa, 1, PGSIZE);
+
+        // free page when no reference counter for page
+        r = (struct run *)pa;
+        r->next = kmem.freelist;
+        kmem.freelist = r;
+        FREE_PAGES++;
+    }
     release(&kmem.lock);
 }
 
@@ -89,7 +123,12 @@ kalloc(void)
     acquire(&kmem.lock);
     r = kmem.freelist;
     if (r)
+    {
         kmem.freelist = r->next;
+        int index = (uint64)r / PGSIZE;
+        ref_count[index] = 1;
+    }
+
     release(&kmem.lock);
 
     if (r)

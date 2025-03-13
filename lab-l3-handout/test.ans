@@ -117,13 +117,3 @@ riscv64-linux-gnu-objdump -S kernel/kernel > kernel/kernel.asm
 riscv64-linux-gnu-objdump -t kernel/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > kernel/kernel.sym
 make[1]: Leaving directory '/mnt/c/Users/chris/Documents/coding-ntnu/3-aret/vaar/operativsystemer/labs/lab-l3-handout'
 == Test [MANDATORY] vatopa exists == 
-$ make qemu-gdb
-[MANDATORY] vatopa exists: [32mOK[0m (8.1s) 
-== Test [MANDATORY] vatopa 0 == 
-$ make qemu-gdb
-[MANDATORY] vatopa 0: [32mOK[0m (1.0s) 
-== Test [MANDATORY] vatopa 0 1 matches == 
-$ make qemu-gdb
-[32m			Matching OK[0m
-[MANDATORY] vatopa 0 1 matches: [32mOK[0m (0.9s) 
-== Test [MANDATORY] cowtest no crash == 
