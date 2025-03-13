@@ -16,6 +16,7 @@ void freerange(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel. // defined by kernel.ld.
 
+// reference counter structure
 struct ref_spinlock ref_st;
 
 struct run
@@ -79,33 +80,40 @@ void kfree(void *pa)
     if (((uint64)pa % PGSIZE) != 0 || (char *)pa < end || (uint64)pa >= PHYSTOP)
         panic("kfree");
 
-    int index = ((uint64)pa) / PGSIZE;
+    struct run *r;
 
     // r = (struct run *)pa;
 
     acquire(&ref_st.lock);
 
-    ref_st.ref_count[index]--;
-    release(&ref_st.lock);
+    int index = ((uint64)pa) / PGSIZE;
 
     // decrease ref count
     // r->next = kmem.freelist;
     // kmem.freelist = r;
     // FREE_PAGES++;
-    if (ref_st.ref_count[index] == 0)
+    if (ref_st.ref_count[index] <= 1)
     {
-        struct run *r;
-        acquire(&kmem.lock);
+        ref_st.ref_count[index] = 0;
+        release(&ref_st.lock);
+
         // Fill with junk to catch dangling refs.
 
         memset(pa, 1, PGSIZE);
 
         // free page when no reference counter for page
+
         r = (struct run *)pa;
+        acquire(&kmem.lock);
         r->next = kmem.freelist;
         kmem.freelist = r;
-        // FREE_PAGES++;
+        FREE_PAGES++;
         release(&kmem.lock);
+    }
+    else
+    {
+        ref_st.ref_count[index]--;
+        release(&ref_st.lock);
     }
 }
 

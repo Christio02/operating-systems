@@ -117,3 +117,44 @@ riscv64-linux-gnu-objdump -S kernel/kernel > kernel/kernel.asm
 riscv64-linux-gnu-objdump -t kernel/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > kernel/kernel.sym
 make[1]: Leaving directory '/mnt/c/Users/chris/Documents/coding-ntnu/3-aret/vaar/operativsystemer/labs/lab-l3-handout'
 == Test [MANDATORY] vatopa exists == 
+$ make qemu-gdb
+[MANDATORY] vatopa exists: [32mOK[0m (10.8s) 
+== Test [MANDATORY] vatopa 0 == 
+$ make qemu-gdb
+[MANDATORY] vatopa 0: [32mOK[0m (1.7s) 
+== Test [MANDATORY] vatopa 0 1 matches == 
+$ make qemu-gdb
+[32m			Matching OK[0m
+[MANDATORY] vatopa 0 1 matches: [32mOK[0m (1.2s) 
+== Test [MANDATORY] cowtest no crash == 
+$ make qemu-gdb
+[MANDATORY] cowtest no crash: [32mOK[0m (7.2s) 
+== Test [MANDATORY] cowtest 1 match addresses == 
+$ make qemu-gdb
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[MANDATORY] cowtest 1 match addresses: [32mOK[0m (5.9s) 
+== Test [MANDATORY] cowtest 2 match addresses == 
+$ make qemu-gdb
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[MANDATORY] cowtest 2 match addresses: [32mOK[0m (6.8s) 
+== Test [MANDATORY] cowtest 3 match addresses == 
+$ make qemu-gdb
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[MANDATORY] cowtest 3 match addresses: [32mOK[0m (6.7s) 
+== Test [MANDATORY] cowtest 4 match addresses == 
+$ make qemu-gdb
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[32m			Matching OK[0m
+[MANDATORY] cowtest 4 match addresses: [32mOK[0m (6.7s) 
+Passed 8 out of 8 tests

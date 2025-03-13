@@ -67,66 +67,74 @@ void usertrap(void)
     // implement usertrap for cow
   }
 
-  // cow fault
-  else if (r_scause() == 15)
-  {
-
-    // get va that caused fault
-    uint64 va = r_stval();
-    uint64 flags;
-    uint64 pa0;
-    pte_t *pte;
-    char *new_pa;
-
-    // ensure va is in correct range
-    if (va >= MAXVA)
-      exit(-1);
-
-    // go through page table and get pte of fault va
-    if ((pte = walk(p->pagetable, va, 0)) == 0)
-      exit(-1);
-
-    // chekc if page is present and valid
-    if ((*pte & PTE_V) == 0)
-      exit(-1);
-
-    // check if page is user accessible
-    if ((*pte & PTE_U) == 0)
-      exit(-1);
-
-    if ((*pte & PTE_S) == 0)
-      exit(-1);
-
-    // Ensure the page is NOT writable (otherwise it's not a COW fault)
-    if ((*pte & PTE_W) != 0)
-      exit(-1);
-
-    // get physical address of faulting page
-    pa0 = PTE2PA(*pte);
-
-    // allocate new physical page for copy
-    if ((new_pa = kalloc()) == 0)
-      exit(-1);
-
-    // move old page contents to new page
-    memmove(new_pa, (char *)pa0, PGSIZE);
-
-    // same flags
-    flags = PTE_FLAGS(*pte);
-    // update pointer to new page
-    *pte = PA2PTE((uint64)new_pa);
-    *pte |= flags;
-    // ensure is writable
-    *pte |= PTE_W;
-    // no longer sharable
-    // *pte &= ~PTE_S;
-
-    // call kfree that either decrements ref count or frees page
-    kfree((void *)pa0);
-  }
   else if ((which_dev = devintr()) != 0)
   {
     // ok
+  }
+  else if (r_scause() == 15) // 15 is the page fault code
+  {
+    // Handle copy-on-write page fault
+
+    // Get current process's page table
+    pagetable_t proc_pagetable = p->pagetable;
+
+    // Get faulting virtual address from stval register
+    uint64 fault_va = r_stval();
+
+    // Validate virtual address
+    if (fault_va >= MAXVA)
+    {
+      p->killed = 1;
+      exit(-1);
+    }
+
+    // Find page table entry for the faulting address
+    pte_t *fault_pte = walk(proc_pagetable, fault_va, 0);
+
+    // Ensure the page exists and is valid
+    if (fault_pte == 0 || (*fault_pte & PTE_V) == 0)
+    {
+      p->killed = 1;
+      exit(-1);
+    }
+
+    // Get physical address of the shared page
+    uint64 old_pa = PTE2PA(*fault_pte);
+
+    // Only handle write faults on pages marked as shared (COW)
+    if (*fault_pte & PTE_S)
+    {
+      // Prepare flags for the new private copy:
+      // - Keep all original permissions
+      // - Add write permission
+      // - Remove shared flag
+      uint flags = PTE_FLAGS(*fault_pte);
+      flags |= PTE_W;  // Make the new page writable
+      flags &= ~PTE_S; // Remove shared/COW flag
+
+      // Allocate a new physical page for the private copy
+      char *new_page = kalloc();
+      if (new_page == 0)
+      {
+        // Out of memory - cannot create private copy
+        p->killed = 1;
+        exit(-1);
+      }
+
+      // Copy content from the shared page to the new private page
+      memmove(new_page, (char *)old_pa, PGSIZE);
+
+      // Update page table entry to point to the new private page
+      *fault_pte = PA2PTE((uint64)new_page) | flags;
+
+      // Decrement reference count of the original shared page
+      // The page will be freed if this was the last reference
+      kfree((char *)old_pa);
+
+      // Return to user space and retry the faulting instruction
+      p->trapframe->epc = r_sepc();
+    }
+    // Note: If not a COW page, will fall through to the error handler below
   }
   else
   {

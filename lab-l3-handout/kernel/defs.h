@@ -72,7 +72,6 @@ void *kalloc(void);
 void kfree(void *);
 void kinit(void);
 void incref(void *pa);
-void decref(void *pa);
 
 // log.c
 void initlog(int, struct superblock *);

@@ -5,6 +5,7 @@
 #include "riscv.h"
 #include "defs.h"
 #include "fs.h"
+#include "spinlock.h"
 
 /*
  * the kernel's page table.
@@ -192,6 +193,7 @@ void uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
     if (do_free)
     {
       uint64 pa = PTE2PA(*pte);
+
       kfree((void *)pa);
     }
     *pte = 0;
@@ -353,7 +355,8 @@ err:
 int uvmshare(pagetable_t parent, pagetable_t child, uint64 size)
 {
   pte_t *pte; // pointer to pte structure
-  uint64 pa, flags, i;
+  uint64 pa, i;
+  uint flags;
 
   for (i = 0; i < size; i += PGSIZE)
   {
@@ -366,24 +369,26 @@ int uvmshare(pagetable_t parent, pagetable_t child, uint64 size)
       panic("uvmshare: page not present");
     }
 
+    // make parent pte read-only
+    *pte &= ~PTE_W;
+
+    // set shared flag to 1
+    *pte |= PTE_S;
+
     // get physical address and flags
     pa = PTE2PA(*pte);
-    flags = PTE_FLAGS(*pte);
 
-    // make child pte read-only
-    flags &= ~PTE_W;
+    // increase ref count for page
+    incref((void *)pa);
+
+    // set same flags for child
+    flags = PTE_FLAGS(*pte);
 
     // map pages to child
     if (mappages(child, i, PGSIZE, pa, flags) != 0)
     {
       goto err;
     }
-    // make parent pte read-only
-    *pte &= ~PTE_W;
-
-    // increase reference count for pages
-    // TODO: Implement in kalloc.c and decref
-    incref((void *)pa);
   }
   return 0;
 
