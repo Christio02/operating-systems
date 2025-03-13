@@ -360,7 +360,7 @@ int uvmshare(pagetable_t parent, pagetable_t child, uint64 size)
     pa = PTE2PA(*pte);
     flags = PTE_FLAGS(*pte);
 
-    // clear write flag, make read-only
+    // make child pte read-only
     flags &= ~PTE_W;
 
     // map pages to child
@@ -368,12 +368,26 @@ int uvmshare(pagetable_t parent, pagetable_t child, uint64 size)
     {
       panic("uvmshare: mappages failed!");
     }
+    // make parent pte read-only
+    *pte &= ~PTE_W;
 
     // increase reference count for pages
     // TODO: Implement in kalloc.c and decref
     // incref((void *)pa);
+
+    /*
+     acquire(&ref_c.lock);
+    - increase reference_count by 1
+    ref_c.reference_count[pa/PGSIZE]++;
+    release(&ref_c.lock);
+
+    */
   }
   return 0;
+
+err:
+  uvmunmap(child, 0, i / PGSIZE, 1);
+  return -1;
 }
 
 // mark a PTE invalid for user access.

@@ -117,6 +117,7 @@ void yield(void);
 int either_copyout(int user_dst, uint64 dst, void *src, uint64 len);
 int either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void procdump(void);
+struct proc *get_proc(int pid);
 // We allocate memory in the callers memory space
 struct user_proc *ps(uint8 start, uint8 count);
 void schedls(void);

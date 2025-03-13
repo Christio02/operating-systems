@@ -17,6 +17,9 @@ void freerange(void *pa_start, void *pa_end);
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
+
+// reference counter for page
+int ref_count[PHYSTOP / PGSIZE];
 struct run
 {
     struct run *next;
@@ -26,7 +29,9 @@ struct
 {
     struct spinlock lock;
     struct run *freelist;
+
 } kmem;
+
 
 void kinit()
 {
@@ -34,6 +39,8 @@ void kinit()
     freerange(end, (void *)PHYSTOP);
     MAX_PAGES = FREE_PAGES;
 }
+
+
 
 void freerange(void *pa_start, void *pa_end)
 {
