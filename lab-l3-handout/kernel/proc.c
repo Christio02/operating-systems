@@ -848,16 +848,22 @@ void schedset(int id)
 struct proc *get_proc(int pid)
 {
     struct proc *p;
+    struct proc *found = 0;
 
     for (p = proc; p < &proc[NPROC]; p++)
     {
         acquire(&p->lock);
         if (p->pid == pid)
         {
-            release(&p->lock);
-            return p;
+            found = p;
+            break;
         }
         release(&p->lock);
     }
-    return 0;
+
+    if (found != 0)
+    {
+        release(&found->lock);
+    }
+    return found;
 }

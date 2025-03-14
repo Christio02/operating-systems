@@ -73,68 +73,65 @@ void usertrap(void)
   }
   else if (r_scause() == 15) // 15 is the page fault code
   {
-    // Handle copy-on-write page fault
 
     // Get current process's page table
     pagetable_t proc_pagetable = p->pagetable;
 
-    // Get faulting virtual address from stval register
+    // get va
     uint64 fault_va = r_stval();
 
-    // Validate virtual address
+    // check if within bounds
     if (fault_va >= MAXVA)
     {
       p->killed = 1;
       exit(-1);
     }
 
-    // Find page table entry for the faulting address
+    // get pte for faulting page
     pte_t *fault_pte = walk(proc_pagetable, fault_va, 0);
 
-    // Ensure the page exists and is valid
+    // check if exist and valid
     if (fault_pte == 0 || (*fault_pte & PTE_V) == 0)
     {
       p->killed = 1;
       exit(-1);
     }
 
-    // Get physical address of the shared page
+    // get physical address
     uint64 old_pa = PTE2PA(*fault_pte);
 
-    // Only handle write faults on pages marked as shared (COW)
+    // if is a copy on write page
     if (*fault_pte & PTE_S)
     {
-      // Prepare flags for the new private copy:
-      // - Keep all original permissions
-      // - Add write permission
-      // - Remove shared flag
+      // get flags
       uint flags = PTE_FLAGS(*fault_pte);
-      flags |= PTE_W;  // Make the new page writable
-      flags &= ~PTE_S; // Remove shared/COW flag
 
-      // Allocate a new physical page for the private copy
+      // make it writable again
+      flags |= PTE_W;
+      // remove shared state
+      flags &= ~PTE_S;
+
+      // create new physical page
       char *new_page = kalloc();
-      if (new_page == 0)
+      if (new_page == 0) // if kalloc returned 0, then it failed
       {
-        // Out of memory - cannot create private copy
+
         p->killed = 1;
         exit(-1);
       }
 
-      // Copy content from the shared page to the new private page
+      // move contents to new page
       memmove(new_page, (char *)old_pa, PGSIZE);
 
-      // Update page table entry to point to the new private page
+      // update pte so it points to new page and add the updated flags
       *fault_pte = PA2PTE((uint64)new_page) | flags;
 
-      // Decrement reference count of the original shared page
-      // The page will be freed if this was the last reference
+      // free old page
       kfree((char *)old_pa);
 
-      // Return to user space and retry the faulting instruction
+      // continue from before trap
       p->trapframe->epc = r_sepc();
     }
-    // Note: If not a COW page, will fall through to the error handler below
   }
   else
   {

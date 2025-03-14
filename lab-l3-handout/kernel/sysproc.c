@@ -142,7 +142,7 @@ uint64 sys_va2pa(void)
         // process not found
         if (p == 0)
         {
-            return 0;
+            return -1;
         }
     }
     // returns correct mapping, 0 if no mapping
