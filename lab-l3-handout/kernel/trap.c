@@ -71,10 +71,10 @@ void usertrap(void)
   {
     // ok
   }
-  else if (r_scause() == 15) // 15 is the page fault code
+  else if (r_scause() == 15) // page fault
   {
 
-    // Get current process's page table
+    // get pagetable
     pagetable_t proc_pagetable = p->pagetable;
 
     // get va
@@ -100,7 +100,7 @@ void usertrap(void)
     // get physical address
     uint64 old_pa = PTE2PA(*fault_pte);
 
-    // if is a copy on write page
+    // if page is shared
     if (*fault_pte & PTE_S)
     {
       // get flags
